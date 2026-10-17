@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#06a64f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="สั่งของ">
+<title>รายการสั่งของ</title>
+<style>
+:root{--bg:#faf8f4;--card:#fff;--ink:#222;--mut:#777;--line:#e6e0d5;--ac:#06a64f;--acd:#05853f;--on:#fff;--hl:#fff5d6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171717;--card:#222;--ink:#eee;--mut:#9a9a9a;--line:#383838;--ac:#2ec46d;--acd:#25a85b;--on:#07210f;--hl:#3a3418}}
+:root[data-theme="dark"]{--bg:#171717;--card:#222;--ink:#eee;--mut:#9a9a9a;--line:#383838;--ac:#2ec46d;--acd:#25a85b;--on:#07210f;--hl:#3a3418}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Sarabun","Noto Sans Thai",system-ui,-apple-system,sans-serif;font-size:17px;padding-bottom:96px}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:10px 12px 8px;z-index:5;border-bottom:1px solid var(--line)}
+h1{font-size:20px;margin:0 0 8px}
+.tabs{display:flex;gap:8px}
+.tab{flex:1;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600}
+.tab.on{background:var(--ac);color:var(--on);border-color:var(--ac)}
+.tab small{display:block;font-weight:400;opacity:.8;font-size:12px}
+#q{width:100%;margin-top:8px;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+main{padding:4px 12px}
+h2{font-size:14px;color:var(--mut);margin:16px 4px 6px;font-weight:600}
+.row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 8px 6px 14px;margin-bottom:6px}
+.row.has{background:var(--hl)}
+.nm{flex:1}
+.ctl{display:flex;align-items:center;gap:4px}
+.ctl button{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:22px;line-height:1}
+.ctl .p{background:var(--ac);color:var(--on);border-color:var(--ac)}
+.ctl input{width:58px;height:42px;text-align:center;font:inherit;font-weight:700;font-size:18px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);padding:0}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;align-items:center;z-index:6}
+.bar .sum{font-size:13px;color:var(--mut);min-width:54px}
+.bar button{flex:1;padding:12px 6px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600}
+.bar .send{background:var(--ac);color:var(--on);border-color:var(--ac);flex:2}
+.bar button:disabled{opacity:.4}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:20px;font-size:14px;display:none;z-index:9}
+</style>
+</head>
+<body>
+<header>
+<h1>รายการสั่งของ</h1>
+<div class="tabs" id="tabs"></div>
+<input id="q" type="search" placeholder="ค้นหารายการ…">
+</header>
+<main id="list"></main>
+<div class="bar">
+<div class="sum" id="sum"></div>
+<button id="clr">ล้าง</button>
+<button id="cp">คัดลอก</button>
+<button class="send" id="send">ส่งเข้าไลน์</button>
+</div>
+<div id="toast"></div>
+<script>
+var DATA={
+a:{name:"ทะเล",groups:[["",["หอยลาย","กุ้งกุลาดำ","ปลาหมึก"]]]},
+b:{name:"อื่นๆ",groups:[
+["ปลา เนื้อ ของแห้ง",["แปะก๊วย","พุดทราจีนแห้ง","เม็ดบัว","ปลาแดง","ปลาอินทรี","เอ็นหมู","กุ้งต้มยำ","หมูยอ","เต้าหู้ไข่","วุ้นเส้น","สาหร่าย","กุ้งแห้ง"]],
+["ผัก",["มะระ","มะเขือยาว","กะหล่ำดาว","ยอดมะระ","กะหล่ำปี","หัวไชเท้า","ผักกาดขาว","บวบ","กระเฉด","ต้นอ่อน","ชื่นช่าย","ผักสลัด","ปวยเล้ง","คะน้า","ผักบุ้ง","กวางตุ้ง","ถั่วงอก","มะเขือเจ้าพระยา","มะเขือเทศ","มะเขือพวง","ฟักทอง","ข้าวโพดอ่อน","แตงกวา","ถั่วฝักยาว"]],
+["เห็ด",["เห็ดฝาง","เห็ดเข็มทอง","เห็ดหูหนู"]],
+["สมุนไพร ผักชี",["กระชาย","พริกไทยอ่อน","ข่า/ตะไคร้/ใบมะกรูด","ต้นหอม","ผักชี","ผักชีฝรั่ง","โหระพา","กระเพรา","ใบแมงลัก","ขิงซอย","ขิงตอง"]],
+["พริก หอม กระเทียม",["พริกขี้หนู","พริกชี้ฟ้าแดง","พริกเดือยเขียว","พริกเดือยแดง","หอมหัวใหญ่","กระเทียม","หอมแดง","หอมแขก"]],
+["ถุง หลอด",["ถุงหิ้ว(6*14)","ถุงหิ้ว(8*16)","ถุงร้อน(6*9)","ถุงร้อน(7*11)","หลอดสั้น","หลอดยาว"]]
+]}};
+var cur="a",qty={},KEY="order-qty-v1";
+try{qty=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){qty={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(qty))}catch(e){}}
+function k(s,n){return s+"|"+n}
+function render(){
+ var t="";for(var s in DATA){var c=cnt(s);t+='<button class="tab'+(s===cur?' on':'')+'" data-s="'+s+'">'+DATA[s].name+'<small>'+(c?c+' รายการ':'ยังไม่เลือก')+'</small></button>'}
+ document.getElementById("tabs").innerHTML=t;
+ var f=document.getElementById("q").value.trim(),h="";
+ DATA[cur].groups.forEach(function(g){
+  var r="";g[1].forEach(function(n){
+   if(f&&n.indexOf(f)<0)return;
+   var v=qty[k(cur,n)]||0;
+   r+='<div class="row'+(v?' has':'')+'"><div class="nm">'+n+'</div><div class="ctl"><button data-n="'+n+'" data-d="-1">−</button><input class="q" type="text" inputmode="decimal" placeholder="0" data-n="'+n+'" value="'+(v||'')+'"><button class="p" data-n="'+n+'" data-d="1">+</button></div></div>'});
+  if(r)h+=(g[0]?'<h2>'+g[0]+'</h2>':'')+r});
+ document.getElementById("list").innerHTML=h||'<p style="color:var(--mut);text-align:center">ไม่พบรายการ</p>';
+ var c2=cnt(cur);document.getElementById("sum").textContent=c2?c2+' รายการ':'';
+ document.getElementById("send").disabled=document.getElementById("cp").disabled=!c2;
+}
+function meta(){document.querySelectorAll(".tab").forEach(function(t){var c=cnt(t.dataset.s);t.querySelector("small").textContent=c?c+" รายการ":"ยังไม่เลือก"});var c2=cnt(cur);document.getElementById("sum").textContent=c2?c2+" รายการ":"";document.getElementById("send").disabled=document.getElementById("cp").disabled=!c2}
+function cnt(s){var c=0;for(var x in qty){if(x.indexOf(s+"|")===0&&qty[x]>0)c++}return c}
+function msg(){
+ var d=new Date().toLocaleDateString("th-TH",{day:"numeric",month:"short"});
+ var o="สั่งของ "+d+"\n";
+ DATA[cur].groups.forEach(function(g){g[1].forEach(function(n){var v=qty[k(cur,n)];if(v>0)o+="- "+n+" "+v+"\n"})});
+ return o.trim()}
+function copyIt(m){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(m).then(function(){toast("คัดลอกแล้ว เปิดไลน์แล้วกดวาง")},function(){prompt("คัดลอกข้อความนี้",m)})}else{prompt("คัดลอกข้อความนี้",m)}}
+function toast(t){var e=document.getElementById("toast");e.textContent=t;e.style.display="block";setTimeout(function(){e.style.display="none"},1800)}
+document.addEventListener("click",function(e){
+ var b=e.target.closest("button");if(!b)return;
+ if(b.dataset.s){cur=b.dataset.s;render();return}
+ if(b.dataset.n){var key=k(cur,b.dataset.n);qty[key]=Math.max(0,(qty[key]||0)+ +b.dataset.d);if(!qty[key])delete qty[key];save();render();return}
+ if(b.id==="clr"){if(!cnt(cur))return;if(!b.dataset.arm){b.dataset.arm="1";b.textContent="ยืนยันเพื่อล้าง";setTimeout(function(){delete b.dataset.arm;b.textContent="ล้าง"},3000);return}for(var x in qty){if(x.indexOf(cur+"|")===0)delete qty[x]}delete b.dataset.arm;b.textContent="ล้าง";save();render()}
+ if(b.id==="cp"){var m=msg();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(m).then(function(){toast("คัดลอกแล้ว")},function(){prompt("คัดลอกข้อความนี้",m)})}else{prompt("คัดลอกข้อความนี้",m)}}
+ if(b.id==="send"){var m2=msg();if(/github\.io$/.test(location.hostname)){location.href="https://line.me/R/share?text="+encodeURIComponent(m2)}else if(navigator.share){navigator.share({text:m2}).catch(function(err){if(!err||err.name!=="AbortError")copyIt(m2)})}else{copyIt(m2)}}
+});
+document.getElementById("q").addEventListener("input",render);
+document.addEventListener("input",function(e){var i=e.target;if(!i.classList||!i.classList.contains("q"))return;var v=parseFloat(i.value.replace(",","."));var key=k(cur,i.dataset.n);if(v>0)qty[key]=v;else delete qty[key];save();i.closest(".row").classList.toggle("has",v>0);meta()});
+render();
+try{if("serviceWorker"in navigator&&/github\.io$/.test(location.hostname))navigator.serviceWorker.register("sw.js")}catch(e){}
+</script>
+</body>
+</html>
